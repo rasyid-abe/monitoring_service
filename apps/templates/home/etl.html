@@ -1,0 +1,244 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Element injected in the BODY element -->
+{% block body_class %} sidebar-mini layout-fixed {% endblock body_class %} 
+{% load dashboard_filters %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/fontawesome-free/css/all.min.css">
+  <!-- DataTables -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+  <!-- IonIcons -->
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/css/adminlte.min.css">
+  <style>
+    .btn-detail {
+      width: 100px;
+    }
+  </style>
+{% endblock stylesheets %}
+
+{% block content %}    
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0 text-dark">ETL Dashboard</h1>
+          </div><!-- /.col -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+    <div class="content">
+      <div class="container-fluid">
+
+        <div class="row">
+          <div class="col-lg-4 offset-lg-4">
+            <div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title">ETL Description</h3>
+              </div>
+              <div class="card-body table-responsive p-0">
+                <table class="table table-valign-middle">
+                  <tr>
+                    <td>Threshold - Last Execution</td>
+                    <td>{{configurations.1.value.threshold_in_minute}} Minutes</td>
+                  </tr>
+                  <tr>
+                    <td>Threshold - Lastest Data</td>
+                    <td>{{configurations.0.value.threshold_in_minute}} Minutes</td>
+                  </tr>
+                  <tr>
+                    <td>Performances</td>
+                    <td><btn class="btn btn-info btn-md btn-detail" type="button" data-toggle="modal" data-target="#modal-performances">Detail</btn></td>
+                  </tr>
+                </table>                
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title">Datamart <b>POSTGRESQL</b></h3>
+              </div>
+              <span style="display:none" id="etl_data_postgres_length">{{etl_data_postgres|length}}</span>
+              <div class="card-body">
+                <table id="example1" class="table table-bordered table-hover">
+                  <thead class="text-center">
+                  <tr>
+                    <th>No</th>
+                    <th>ETL Name</th>
+                    <th>Last Execution</th>
+                    <th>Latest Data</th>
+                    <th>Latest Time Process</th>
+                    <th>Latest Rows</th>
+                    <th>Running On</th>
+                    <th>Detail</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for key, value in etl_data_postgres.items %}
+                    <tr>
+                      <td class="text-center">{{forloop.counter}}</td>
+                      <td>{{key}}</td>
+                      <td {% if etl_threshold > value.actdate|datetime_to_timestamp %} style="background-color:orange;" {% endif %}>{{value.actdate|time_normalization}}</td>
+                      <td {% if data_threshold > value.ts_end|datetime_to_timestamp %} style="background-color:orange;" {% endif %}>{{value.ts_end|time_normalization}}</td>
+                      <td>{{value.time_process|milisecond_to_minute}}</td>
+                      <td>{{value.num_row|thousands_separators}}</td>
+                      <td style="text-align: center;">
+                        <div class="alert alert-{% if value.type == 'Spark' %}primary{% else %}success{% endif %} text-center" style="padding:5px; width:100px; margin:0 auto;" role="alert">
+                          {{value.type}}
+                        </div>
+                      </td>
+                      <td class="text-center">
+                        <button id="btn-detail-data-postgres-{{forloop.counter}}" value="{{key}}" type="button" class="btn btn-info btn-md btn-detail" data-toggle="modal" data-target="#modal-xl">
+                          Detail
+                        </td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- /.card -->
+          </div>
+          
+        </div>
+        <!-- /.row -->
+
+      </div>
+      <!-- /.container-fluid -->
+
+      <div class="modal fade" id="modal-xl">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="etl-name-title">~ETL NAME~</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <table id="example3" class="table table-bordered table-hover">
+                <thead class="text-center">
+                  <tr>
+                    <th>No</th>
+                    <th>id</th>
+                    <th>actdate</th>
+                    <th>ts_current</th>
+                    <th>num_row</th>
+                    <th>time_process</th>
+                    <th>ts_end</th>
+                    <th>params</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+      <div class="modal fade" id="modal-performances">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title">Performances</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <p>Calculation based on the last 50 logs</p>
+              <lu>
+                <li>Rows/Minute : bigger is better</li>
+                <li>Minute Sequence/Minute : lesser is better</li>
+                <li>"," : thousands separators</li>
+                <li>"." : decimal value</li>
+              </lu>
+              <br>
+              <table id="example4" class="table table-bordered table-hover" width="100%">
+                <thead class="text-center">
+                  <tr>
+                    <th rowspan="2">No</th>
+                    <th rowspan="2">ETL Name</th>
+                    <th rowspan="2">Rows/Minute</th>
+                    <th rowspan="2">Minute Sequence/Minute</th>
+                    <th colspan="2">Estimated Time To Realtime</th>
+                  </tr>
+                  <tr>
+                    <th>Hour</th>
+                    <th>Day</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+    </div>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <!-- jQuery -->
+  <script src="{{ ASSETS_ROOT }}/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap -->
+  <script src="{{ ASSETS_ROOT }}/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE -->
+  <script src="{{ ASSETS_ROOT }}/js/adminlte.js"></script>
+  <script src="{{ ASSETS_ROOT }}/js/main.js"></script>
+  <!-- OPTIONAL SCRIPTS -->
+  <script src="{{ ASSETS_ROOT }}/plugins/chart.js/Chart.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/js/demo.js"></script>
+  <script src="{{ ASSETS_ROOT }}/js/pages/dashboard3.js"></script>
+  <!-- DataTables -->
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables/jquery.dataTables.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/js/etl.js"></script>
+
+
+{% endblock javascripts %}

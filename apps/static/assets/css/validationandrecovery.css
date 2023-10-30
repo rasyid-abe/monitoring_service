@@ -1,0 +1,136 @@
+.btn-detail {
+    width: 100px;
+  }
+  #recovery_loading, #validity_loading, #scheduler_loading  {
+    width: 2rem;
+    height: 2rem;
+    border: 5px solid #f3f3f3;
+    border-top: 6px solid #9c41f2;
+    border-radius: 100%;
+    margin: auto;
+    visibility: hidden;
+    animation: spin 1s infinite linear;
+ }
+  #recovery_loading.display, #validity_loading.display, #scheduler_loading.display {
+      visibility: visible;
+  }
+  @keyframes spin {
+      from {
+          transform: rotate(0deg);
+      }
+      to {
+          transform: rotate(360deg);
+      }
+  }
+
+  #scheduler-table .table-title .add-new {
+    float: right;
+    height: 30px;
+    font-weight: bold;
+    font-size: 12px;
+    text-shadow: none;
+    min-width: 100px;
+    border-radius: 50px;
+    line-height: 13px;
+  }
+  #scheduler-table .table-title .add-new i {
+    margin-right: 4px;
+  }
+  #scheduler-table {
+    table-layout: fixed;
+  }
+  #scheduler-table tr th,
+  #scheduler-table tr td {
+    border-color: #e9e9e9;
+  }
+  #scheduler-table th i {
+    font-size: 13px;
+    margin: 0 5px;
+    cursor: pointer;
+  }
+  #scheduler-table th:last-child {
+    width: 100px;
+  }
+  #scheduler-table td a {
+    cursor: pointer;
+    display: inline-block;
+    margin: 0 5px;
+    min-width: 24px;
+  }
+  #scheduler-table td a.add {
+    color: #27c46b;
+  }
+  #scheduler-table td a.edit {
+    color: #ffc107;
+  }
+  #scheduler-table td a.delete {
+    color: #e34724;
+  }
+  #scheduler-table td i {
+    font-size: 19px;
+  }
+  #scheduler-table td a.add i {
+    font-size: 24px;
+    margin-right: -1px;
+    position: relative;
+    top: 3px;
+  }
+  #scheduler-table .form-control {
+    height: 32px;
+    line-height: 32px;
+    box-shadow: none;
+    border-radius: 2px;
+  }
+  #scheduler-table .form-control.error {
+    border-color: #f50000;
+  }
+  #scheduler-table td .add {
+    display: none;
+  }
+
+
+  .autocomplete {
+    /*the container must be positioned relative:*/
+    position: relative;
+    display: inline-block;
+  }
+  .nifi_input input {
+    border: 1px solid transparent;
+    background-color: #f1f1f1;
+    padding: 10px;
+    font-size: 16px;
+  }
+  .nifi_input input[type=text] {
+    background-color: #f1f1f1;
+    width: 100%;
+  }
+  .nifi_input input[type=submit] {
+    background-color: DodgerBlue;
+    color: #fff;
+  }
+  .autocomplete-items {
+    position: absolute;
+    border: 1px solid #d4d4d4;
+    border-bottom: none;
+    border-top: none;
+    z-index: 99;
+    /*position the autocomplete items to be the same width as the container:*/
+    top: 100%;
+    left: 0;
+    right: 0;
+  }
+  .autocomplete-items div {
+    padding: 10px;
+    cursor: pointer;
+    background-color: #fff;
+    border-bottom: 1px solid #d4d4d4;
+  }
+  .autocomplete-items div:hover {
+    /*when hovering an item:*/
+    background-color: #e9e9e9;
+  }
+  .autocomplete-active {
+    /*when navigating through the items using the arrow keys:*/
+    background-color: DodgerBlue !important;
+    color: #ffffff;
+  }

@@ -1,0 +1,443 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Element injected in the BODY element -->
+{% block body_class %} sidebar-mini layout-fixed {% endblock body_class %} 
+{% load dashboard_filters %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/fontawesome-free/css/all.min.css">
+  <!-- IonIcons -->
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/css/adminlte.min.css">
+  <!-- DataTables -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+  <!-- Toastr -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/toastr/toastr.min.css">
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
+  <style>
+    .btn-action {
+      width: 80px;
+    }
+  </style>
+{% endblock stylesheets %}
+
+{% block content %}    
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0 text-dark">Airflow Dashboard</h1>
+          </div><!-- /.col -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+    <div class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-4 offset-lg-4">
+            <div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title">Airflow Identity</h3>
+              </div>
+              <div class="card-body table-responsive p-0">
+                <table class="table table-valign-middle">
+                  <tr>
+                    <td>Version</td>
+                    <td>{{identity.version}}</td>
+                  </tr>
+                  <tr>
+                    <td>Latest Scheduler Heartbeat</td>
+                    <td>{{identity.latest_scheduler_heartbeat}}</td>
+                  </tr>
+                  <tr>
+                    <td>Meta Database Status</td>
+                    <td>{{identity.metadatabase_status}}</td>
+                  </tr>
+                  <tr>
+                    <td>Scheduler Status</td>
+                    <td>{{identity.scheduler_status}}</td>
+                  </tr>
+                  <tr>
+                    <td>Error</td>
+                    <td>
+                      <button class="btn btn-danger btn-action" type="button" data-toggle="modal" data-target="#modal-general-error">General</button>
+                      <button class="btn btn-danger btn-action" type="button" data-toggle="modal" data-target="#modal-failed-task">Task</button>
+                    </td>
+                  </tr>
+                </table>                
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title">Dag List</h3>
+              </div>
+              <div class="card-body">
+                <table id="example1" class="table table-bordered table-hover">
+                  <thead class="text-center">
+                  <tr>
+                    <th>No</th>
+                    <th>Dag ID</th>
+                    <th>Paused</th>
+                    <th>Latest Data</th>
+                    <th>Last Parsed Time</th>
+                    <th>Schedule Interval</th>
+                    {% if user.is_readonly != 1 %}
+                    <th>Action</th>
+                    {% endif %}
+                    <th>Detail</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for value in dag_list %}
+                    <tr>
+                      <td class="text-center">{{forloop.counter}}</td>
+                      <td id="dag-name-{{forloop.counter}}">{{value.name}}</td>
+                      {% if value.is_paused %}
+                      <td style="background-color:orange;">Yes</td>
+                      {% else %}
+                      <td style="background-color:#7FFF00;">No</td>
+                      {% endif %}
+                      <td>{{value.latest_data}}</td>
+                      <td>{{value.last_execution}}</td>
+                      <td>{{value.schedule_interval}}</td>
+                      {% if user.is_readonly != 1 %}
+                      <td class="text-center">
+                        {% if value.is_paused %}
+                        <button id="btn-paused-{{forloop.counter}}" value="{{value.name}}" class="btn btn-success btn-action">Run</button>
+                        {% else %}
+                        <button id="btn-paused-{{forloop.counter}}" value="{{value.name}}" class="btn btn-danger btn-action">Pause</button>
+                        {% endif %}
+                      </td>
+                      {% endif %}
+                      <td class="text-center">
+                        <button id="btn-detail-data-{{forloop.counter}}" value="{{value.name}}" type="button" class="btn btn-info btn-action" data-toggle="modal" data-target="#modal-xl">
+                          Detail
+                        </button>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- /.card -->
+          </div>          
+        </div>
+        <!-- /.row -->
+      </div>
+      <!-- /.container-fluid -->
+
+      <div class="modal fade" id="modal-xl">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="dag-name-title">~Dag Name~</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <table id="example2" class="table table-bordered table-hover">
+                <thead class="text-center">
+                  <tr>
+                    <th>No</th>
+                    <th>Name</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+      <div class="modal fade" id="modal-general-error">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title">General Error</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <table id="general_error" class="table table-bordered table-hover">
+                <thead class="text-center">
+                  <tr>
+                    <th>No</th>
+                    <th>File Name</th>
+                    <th>Stacktrace</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in general_error %}
+                    <tr>
+                      <td>{{forloop.counter}}</td>
+                      <td>{{item.filename}}</td>
+                      <td>{{item.stacktrace}}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+      <div class="modal fade" id="modal-failed-task">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title">Failed Task</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <table id="failed_task" class="table table-bordered table-hover">
+                <thead class="text-center">
+                  <tr>
+                    <th>No</th>
+                    <th>Dag Id</th>
+                    <th>Task Id</th>
+                    <th>Failed Total</th>
+                    <th>Last Failed At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in failed_task %}
+                    <tr>
+                      <td class="text-center">{{forloop.counter}}</td>
+                      <td>{{item.dag_id}}</td>
+                      <td>{{item.task_id}}</td>
+                      <td>{{item.failed_total}}</td>
+                      <td>{{item.last_failed_at|time_normalization}}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+
+
+    </div>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <!-- jQuery -->
+  <script src="{{ ASSETS_ROOT }}/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap -->
+  <script src="{{ ASSETS_ROOT }}/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE -->
+  <script src="{{ ASSETS_ROOT }}/js/adminlte.js"></script>
+  <script src="{{ ASSETS_ROOT }}/js/main.js"></script>
+
+  <!-- DataTables -->
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables/jquery.dataTables.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+
+  <!-- SweetAlert2 -->
+  <script src="{{ ASSETS_ROOT }}/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+  <!-- Toastr -->
+  <script src="{{ ASSETS_ROOT }}/plugins/toastr/toastr.min.js"></script>
+
+  <!-- page script -->
+  <script>
+    $(function () {
+      $("#example1").DataTable({
+        "responsive": true,
+        "autoWidth": false,
+      });
+      $("#example2").DataTable({
+        "responsive": true,
+        "autoWidth": false,
+      });
+      $("#general_error").DataTable({
+        "responsive": true,
+        "autoWidth": false,
+      });
+      $("#failed_task").DataTable({
+        "responsive": true,
+        "autoWidth": false,
+      });
+    });
+  </script>
+
+  <script>
+    for(let i = 1; i< {{dag_list_length}}+1; i++)
+    {
+      $("#btn-paused-"+i).click(function()
+      {  
+        state = 'False'
+        console.log($(this).text());
+        if($(this).text() == 'Pause')
+        {
+          state = 'True'
+        }
+        
+        url = window.location.origin;
+        url += '/apis/airflow/taks?purpose=run_dag&id=' + $(this).val() + '&state=' + state;
+      
+        $.ajax
+        ({
+          url: url,
+          method: "PUT",
+          headers:{'X-CSRFToken': '{{csrf_token}}'},
+          success: (data) => 
+          {
+            var Toast = Swal.mixin({
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 3000
+            });
+
+            if(data['status'] == 200)              
+            {
+              Toast.fire({
+                icon: 'success',
+                title: 'Action done successfully'
+              });
+              location.reload() 
+            }else
+            {
+              Toast.fire({
+                icon: 'success',
+                title: 'Action Failed'
+              });
+            }
+          }
+        })
+      });
+
+      $("#btn-detail-data-"+i).click(function()
+      {
+        url = window.location.origin;
+        url += '/apis/airflow/taks?id=' + $(this).val()
+
+        $.get(url, function(data, status)
+        {
+          table = $("#example2").DataTable();
+          table.clear().draw();
+
+          data['taks'].forEach((item, index) => 
+          {
+            table.row.add([index+1, item['name'], item['start_date'], item['end_date'], '-'])
+            .draw()
+            .node();
+                    
+            {% comment %} $("#btn-activation-"+i+'-'+index).click(function()
+            {
+              url = window.location.origin;
+              url += '/apis/nifi/processors?processorId=' + item['id'] + '&version=' + item['version'] + '&clientId=' + item['clientId'] + '&state=' + state
+              $.ajax
+              ({
+                url: url,
+                method: "PUT",
+                headers:{'X-CSRFToken': '{{csrf_token}}'},
+                success: (data) => 
+                {
+                  var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                  });
+
+                  if(data['status'] == 200)
+                  {
+                    Toast.fire({
+                      icon: 'success',
+                      title: data['message']
+                    });
+
+                    current_state = 'Running';
+                    button_name = 'Stop';
+                    button_class = 'btn btn-danger';
+                    if(state == 'STOPPED')
+                    {
+                      current_state = 'Stopped';
+                      button_name = 'Activate';
+                      button_class = button_class.replace('btn-danger', 'btn-success')
+                    }
+                    
+                    $(this).html(button_name);
+                    $(this).prop('class', button_class);
+                    $('#status-' + i + '-' + index).text(current_state);
+                    
+                  }else
+                  {
+                    Toast.fire({
+                      icon: 'error',
+                      title: data['message']
+                    });
+                  }
+                }
+              });
+            });  {% endcomment %}
+          });
+
+          $('#dag-name-title').html($('#dag-name-'+i).text());
+
+        }); 
+      }); 
+    }
+  </script>
+{% endblock javascripts %}

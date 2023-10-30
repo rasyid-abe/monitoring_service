@@ -1,0 +1,479 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Element injected in the BODY element -->
+{% block body_class %} sidebar-mini layout-fixed {% endblock body_class %} 
+{% load dashboard_filters %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% load socialaccount %}
+
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/fontawesome-free/css/all.min.css">
+  <!-- IonIcons -->
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/css/adminlte.min.css">
+
+{% endblock stylesheets %}
+
+{% block content %}    
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0 text-dark">Data Engineer Dashboard</h1>
+          </div><!-- /.col -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+    
+    <!-- Main content -->
+    <div class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-4 offset-lg-4">
+            <div class="card">
+              <div class="card-body table-responsive p-0">
+                <table class="table table-valign-middle">
+                  <tr>
+                    <td>Latest Fetched at</td>
+                    <td><span id="fetched-time">???</span></td>
+                  </tr>
+                  <tr>
+                    <td>Latest Response Time</td>
+                    <td><span id="response-time">???</span></td>
+                  </tr>
+                  <tr>
+                    <td>Current State</td>
+                    <td><span id="fetched-state">???</span></td>
+                  </tr>
+                  <tr>
+                    <td colspan="2" style="text-align:center;"><span>data will be automatically updated every 60 seconds</span></td>
+                  </tr>
+                </table>                
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <h3 class="mb-2 mt-4" style="text-align:center">Summary</h3>
+        <div class="row">
+          <div class="offset-lg-3 col-lg-2 col-6">
+            <!-- small card -->
+            <div class="small-box bg-success">
+              <div class="inner">
+                <h3 id="sum-normal">???</h3>
+                <p>Normal</p>
+              </div>
+              <div class="icon">
+                <i class="fa fa-thumbs-up" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+          <!-- ./col -->
+          <div class="col-lg-2 col-6">
+            <!-- small card -->
+            <div class="small-box bg-warning">
+              <div class="inner">
+                <h3 id="sum-warning">???</h3>
+                <p>Warning</p>
+              </div>
+              <div class="icon">
+                <i class="fa fa-exclamation-triangle" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+          <!-- ./col -->
+          <div class="col-lg-2 col-6">
+            <!-- small card -->
+            <div class="small-box bg-danger">
+              <div class="inner">
+                <h3 id="sum-danger">???</h3>
+                <p>Danger</p>
+              </div>
+              <div class="icon">
+                <i class="fa fa-fire-extinguisher" aria-hidden="true"></i>
+              </div>
+            </div>
+          </div>
+          <!-- ./col -->
+        </div>
+        <!-- /.row -->
+        
+        <h3 class="mb-2 mt-4" style="text-align:center">Details</h3>
+        <div class="row">
+          <div class="col-md-4">
+            <!-- Widget: user widget style 2 -->
+            <div class="card card-widget widget-user-2">
+              <!-- Add the bg color to the header using any of the bg-* classes -->
+              <div class="widget-user-header bg-info">
+                <!-- /.widget-user-image -->
+                <h3 class="widget-user-username">CDC</h3>
+                <h5 class="widget-user-desc">Injecting main data into datamart</h5>
+              </div>
+              <div class="card-footer p-0">
+                <ul class="nav flex-column">
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      Connectors Plugged<span id="cdc-connectors_plugged" class="float-right badge bg-primary">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      Running Connectors <span id="cdc-running_connectors" class="float-right badge bg-success">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      Running Tasks <span id="cdc-running_tasks" class="float-right badge bg-success">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      Connectors Failed <span id="cdc-connectors_failed" class="float-right badge bg-danger">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      Tasks Failed<span id="cdc-tasks_failed" class="float-right badge bg-danger">???</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <!-- /.widget-user -->
+          </div>
+
+          <div class="col-md-4">
+            <!-- Widget: user widget style 2 -->
+            <div class="card card-widget widget-user-2">
+              <!-- Add the bg color to the header using any of the bg-* classes -->
+              <div class="widget-user-header bg-info">
+                <!-- /.widget-user-image -->
+                <h3 class="widget-user-username">Health Check</h3>
+                <h5 class="widget-user-desc">Health condition of each service</h5>
+              </div>
+              <div class="card-footer p-0">
+                <ul class="nav flex-column">
+                  <li class="nav-item">
+                    <a href="#" class="nav-link" id="health-airflow">
+                      Airflow <span class="float-right badge bg-success">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link" id="health-etl-akunting">
+                      ETL Accounting Spark <span class="float-right badge bg-success">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link" id="health-etl">
+                      ETL Transaction Spark <span class="float-right badge bg-success">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link" id="health-datamart-postgres">
+                      Datamart Database (Postgres) <span class="float-right badge bg-success">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link" id="health-nifi">
+                      NIFI <span class="float-right badge bg-success">???</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <!-- /.widget-user -->
+          </div>
+
+          <div class="col-md-4">
+            <!-- Widget: user widget style 2 -->
+            <div class="card card-widget widget-user-2">
+              <!-- Add the bg color to the header using any of the bg-* classes -->
+              <div class="widget-user-header bg-info">
+                <!-- /.widget-user-image -->
+                <h3 class="widget-user-username">NIFI</h3>
+                <h5 class="widget-user-desc">Scheduling to execute ETL</h5>
+              </div>
+              <div class="card-footer p-0">
+                <ul class="nav flex-column">
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      Processor Groups Plugged<span id="nifi-processor_groups_plugged" class="float-right badge bg-primary">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      Running Processors <span id="nifi-running_processors" class="float-right badge bg-success">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      Processors Stopped <span id="nifi-processors_stopped" class="float-right badge bg-warning">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      Processors Disabled <span id="nifi-processors_disabled" class="float-right badge bg-warning">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      Processors Invalid<span id="nifi-processors_invalid" class="float-right badge bg-danger">???</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <!-- /.widget-user -->
+          </div>
+        </div>
+
+
+        <div class="row">
+          <div class="col-md-4">
+            <!-- Widget: user widget style 2 -->
+            <div class="card card-widget widget-user-2">
+              <!-- Add the bg color to the header using any of the bg-* classes -->
+              <div class="widget-user-header bg-info">
+                <!-- /.widget-user-image -->
+                <h3 class="widget-user-username">Airflow</h3>
+                <h5 class="widget-user-desc">Injecting main data into datamart (Catch Up)</h5>
+              </div>
+              <div class="card-footer p-0">
+                <ul class="nav flex-column">
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      <a href="#" class="nav-link">
+                        Dags Plugged<span id="airflow-dags_plugged" class="float-right badge bg-primary">???</span>
+                      </a>
+                      <a href="#" class="nav-link">
+                        Running Dags<span id="airflow-running_dags" class="float-right badge bg-success">???</span>
+                      </a>
+                      <a href="#" class="nav-link">
+                        Dags Paused<span id="airflow-dags_paused" class="float-right badge bg-warning">???</span>
+                      </a>
+                      <a href="#" class="nav-link">
+                        Tasks Failed (last 2 days)<span id="airflow-task_failed" class="float-right badge bg-danger">???</span>
+                      </a>
+                      <a href="#" class="nav-link">
+                        General Error<span id="airflow-general_error" class="float-right badge bg-danger">???</span>
+                      </a>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <!-- /.widget-user -->
+          </div>
+          
+          <div class="col-md-4">
+            <!-- Widget: user widget style 2 -->
+            <div class="card card-widget widget-user-2">
+              <!-- Add the bg color to the header using any of the bg-* classes -->
+              <div class="widget-user-header bg-info">
+                <!-- /.widget-user-image -->
+                <h3 class="widget-user-username">ETL</h3>
+                <h5 class="widget-user-desc">Building datamart</h5>
+              </div>
+              <div class="card-footer p-0">
+                <ul class="nav flex-column">
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      ETL Plugged<span id="etl-etl_plugged" class="float-right badge bg-primary">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      Datamart Updated<span id="etl-datamart_updated" class="float-right badge bg-success">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      There's execution less than 2 hours <span id="etl-execution" class="float-right badge bg-success">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      Datamart Outdated (more than 1 day) <span id="etl-datamart_outdated" class="float-right badge bg-warning">???</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      No execution more than 2 hours <span id="etl-no_execution" class="float-right badge bg-danger">???</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <!-- /.widget-user -->
+          </div>
+
+          <div class="col-md-4">
+            <!-- Widget: user widget style 2 -->
+            <div class="card card-widget widget-user-2">
+              <!-- Add the bg color to the header using any of the bg-* classes -->
+              <div class="widget-user-header bg-info">
+                <!-- /.widget-user-image -->
+                <h3 class="widget-user-username">Data Validity & Recovery</h3>
+                <h5 class="widget-user-desc">Validating and Recovering Datamart</h5>
+              </div>
+              <div class="card-footer p-0">
+                <ul class="nav flex-column">
+                  <li class="nav-item">
+                    <a href="#" class="nav-link">
+                      Recoveries Plugged<span id="recovery-recovery_plugged" class="float-right badge bg-primary">???</span>
+                    </a>
+                    <a href="#" class="nav-link">
+                      Validations Plugged<span id="recovery-validity_plugged" class="float-right badge bg-primary">???</span>
+                    </a>
+                    <a href="#" class="nav-link">
+                      Data has been Recovered<span id="recovery-recovered" class="float-right badge bg-success">???</span>
+                    </a>
+                    <a href="#" class="nav-link">
+                      Waiting for Recovery<span id="recovery-wait_to_recover" class="float-right badge bg-warning">???</span>
+                    </a>
+                    <a href="#" class="nav-link">
+                      No validation more than 2 days<span id="recovery-no_validation" class="float-right badge bg-danger">???</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <!-- /.widget-user -->
+          </div>
+        </div>
+      </div>
+      <!-- /.container-fluid -->
+
+    </div>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <!-- jQuery -->
+  <script src="{{ ASSETS_ROOT }}/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap -->
+  <script src="{{ ASSETS_ROOT }}/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE -->
+  <script src="{{ ASSETS_ROOT }}/js/adminlte.js"></script>
+  <script src="{{ ASSETS_ROOT }}/js/main.js"></script>
+  <script>
+
+    generateData()
+    setInterval(function(){ generateData(); }, 60000);
+    function generateData()
+    {
+      url = window.location.origin;
+      url += '/apis/dashboard'
+
+      var start = new Date().getTime();
+      $('#fetched-state').html('Fetching data');
+    
+      $.get(url, function(data, status)
+      {
+        // filling airflow data
+        airflow = data['airflow']
+        $('#airflow-dags_plugged').html(airflow['dags_plugged'])
+        $('#airflow-running_dags').html(airflow['running_dags'])
+        $('#airflow-dags_paused').html(airflow['dags_paused'])
+        $('#airflow-task_failed').html(airflow['task_failed'])
+        $('#airflow-general_error').html(airflow['general_error'])
+
+        // filling cdc data
+        cdc = data['cdc']
+        $('#cdc-connectors_failed').html(cdc['connectors_failed'])
+        $('#cdc-connectors_plugged').html(cdc['connectors_plugged'])
+        $('#cdc-running_connectors').html(cdc['running_connectors'])
+        $('#cdc-running_tasks').html(cdc['running_tasks'])
+        $('#cdc-tasks_failed').html(cdc['tasks_failed'])
+        
+        // filling etl data
+        etl = data['etl']
+        $('#etl-etl_plugged').html(etl['etl_plugged'])
+        $('#etl-datamart_updated').html(etl['datamart_updated'])
+        $('#etl-execution').html(etl['execution'])
+        $('#etl-datamart_outdated').html(etl['datamart_outdated'])
+        $('#etl-no_execution').html(etl['no_execution'])
+        
+        // filling nifi data
+        nifi = data['nifi']
+        $('#nifi-processor_groups_plugged').html(nifi['processor_groups_plugged'])
+        $('#nifi-processors_disabled').html(nifi['processors_disabled'])
+        $('#nifi-processors_invalid').html(nifi['processors_invalid'])
+        $('#nifi-processors_stopped').html(nifi['processors_stopped'])
+        $('#nifi-running_processors').html(nifi['running_processors'])
+        
+        // filling recovery data
+        recovery = data['recovery']
+        $('#recovery-recovery_plugged').html(recovery['recovery_plugged'])
+        $('#recovery-validity_plugged').html(recovery['validity_plugged'])
+        $('#recovery-recovered').html(recovery['recovered'])
+        $('#recovery-wait_to_recover').html(recovery['wait_to_recover'])
+        $('#recovery-no_validation').html(recovery['no_validation'])
+
+        // filling health check data
+        health = data['health']
+        // -- airflow
+        html = 'Airflow <span class="float-right badge bg-success">'+health['airflow']+'</span>'
+        html = health['airflow'] == 'OK' ? html : html.replace('bg-success', 'bg-danger') 
+        $('#health-airflow').html(html)
+        // -- etl akunting
+        html = 'ETL Accounting Spark <span class="float-right badge bg-success">'+health['etl_akunting']+'</span>'
+        html = health['etl_akunting'] == 'OK' ? html : html.replace('bg-success', 'bg-danger') 
+        $('#health-etl-akunting').html(html)
+        // -- etl
+        html = 'ETL Transaction Spark <span class="float-right badge bg-success">'+health['etl']+'</span>'
+        html = health['etl'] == 'OK' ? html : html.replace('bg-success', 'bg-danger') 
+        $('#health-etl').html(html)
+        // -- datamart - postgres
+        html = 'Datamart Database (Postgres) <span class="float-right badge bg-success">'+health['datamart_postgres']+'</span>'
+        html = health['datamart_postgres'] == 'OK' ? html : html.replace('bg-success', 'bg-danger') 
+        $('#health-datamart-postgres').html(html)
+        // -- datamart - nifi
+        html = 'NIFI <span class="float-right badge bg-success">'+health['nifi']+'</span>'
+        html = health['nifi'] == 'OK' ? html : html.replace('bg-success', 'bg-danger') 
+        $('#health-nifi').html(html)
+              
+        // filling summary data
+        normal = cdc['running_connectors'] + cdc['running_tasks'] + 
+          etl['datamart_updated'] + etl['execution'] + nifi['running_processors'] +
+          airflow['running_dags'] + recovery['recovered'] + health['ok_total'];
+        warning = etl['datamart_outdated'] + nifi['processors_disabled'] + nifi['processors_stopped'] +
+          airflow['dags_paused'] + recovery['wait_to_recover'];
+        danger = cdc['connectors_failed'] + cdc['tasks_failed'] + etl['no_execution'] + nifi['processors_invalid'] +
+          airflow['task_failed'] + airflow['general_error'] + recovery['no_validation'] + health['unhealthy_total'];
+        
+        $('#sum-normal').html(normal);
+        $('#sum-warning').html(warning);
+        $('#sum-danger').html(danger);
+        
+        $('#fetched-time').html(data['time']);
+        $('#fetched-state').html('Idle');
+        $('#response-time').html((new Date().getTime() - start) + ' ms');
+      });
+    }
+    
+  </script>
+
+  {% endblock javascripts %}

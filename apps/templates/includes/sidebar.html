@@ -1,0 +1,266 @@
+  <!-- Main Sidebar Container -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a href="/" class="brand-link">
+      <span class="brand-text font-weight-light">DE Dashboard</span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Sidebar user panel (optional) -->
+      <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+        <div class="image">
+          {% if user.socialaccount_set.all.0.uid %}
+            <img src="{{ user.socialaccount_set.all.0.get_avatar_url }}" class="img-circle elevation-2" alt="User Image">
+          {% else %}
+            <img src="{{ ASSETS_ROOT }}/img/user2-160x160.jpg" class="img-circle elevation-2" alt="User Image">
+          {% endif %}
+        </div>
+        <div class="info">
+          <a href="{% url 'logout' %}" class="d-block">
+            {{ request.user.username }} - Logout
+          </a>
+          {% if user.is_superuser %}
+            <span class="badge bg-primary">Superuser</span>
+          {% endif %}
+          {% if user.is_readonly %}
+            <span class="badge bg-primary">Readonly</span>
+            {% else %}
+            <span class="badge bg-primary">Admin</span>
+          {% endif %}
+          {% if user.is_tac %}
+            <span class="badge bg-primary">TAC</span>
+          {% endif %}
+
+
+
+        </div>
+      </div>
+
+      <!-- SidebarSearch Form -->
+      <div class="form-inline">
+        <div class="input-group" data-widget="sidebar-search">
+          <input class="form-control form-control-sidebar" type="search" placeholder="Search" aria-label="Search">
+          <div class="input-group-append">
+            <button class="btn btn-sidebar">
+              <i class="fas fa-search fa-fw"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar Menu -->
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          
+          <!-- Add icons to the links using the .nav-icon class
+               with font-awesome or any other icon font library -->
+          <li class="nav-item has-treeview {% if 'index' in segment %} menu-open {% endif %}">
+            <a href="/" class="nav-link {% if 'index' in segment %} active {% endif %}">
+              <i class="nav-icon fas fa-tachometer-alt"></i>
+              <p>
+                Dashboard
+                <i class="right fas fa-angle-left"></i>
+              </p>
+            </a>
+
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="/" class="nav-link {% if 'index' in segment %} active {% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                    Services
+                  </p>
+                </a>
+              </li>
+              {% comment %} <li class="nav-item">
+                <a href="#" class="nav-link {% if '__' in segment %} active {% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                    Resources (Soon)
+                  </p>
+                </a>
+              </li> {% endcomment %}
+            </ul>
+          </li>
+
+          {% if request.user.is_superuser %}
+          <li class="nav-item">
+            <a href="/admin" target="_blank" class="nav-link">
+              <i class="nav-icon fa fa-cog"></i>
+              <p>
+                Admin Panel
+              </p>
+            </a>
+          </li>
+          {% endif %}
+
+          <li class="nav-item">
+            <a href="/airflow.html" class="nav-link {% if 'airflow' in segment %} active {% endif %}">
+              <i class="fas fa-fan nav-icon" aria-hidden="true"></i>
+              <p>Airflow</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="/alert.html" class="nav-link {% if 'alert' in segment %} active {% endif %}">
+              <i class="nav-icon fas fa-exclamation-triangle" aria-hidden="true"></i>
+              <p>Alert</p>
+            </a>
+          </li>
+
+          <li class="nav-item has-treeview {% if 'cdc' in segment %} menu-open {% endif %}">
+            <a href="/" class="nav-link {% if 'cdc' in segment %} active {% endif %}">
+              <i class="fas fa-syringe nav-icon"></i>
+              <p>
+                CDC
+                <i class="right fas fa-angle-left"></i>
+              </p>
+            </a>
+
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="/cdc-data.html" class="nav-link {% if 'cdc-data' in segment %} active {% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                    Data
+                  </p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="/cdc-status.html" class="nav-link {% if 'cdc-status' in segment %} active {% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                    Status
+                  </p>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          {% comment %} <li class="nav-item">
+            <a href="/etl.html" class="nav-link {% if 'etl' in segment %} active {% endif %}">
+              <i class="nav-icon fa fa-database" aria-hidden="true"></i>
+              <p>
+                ETL
+              </p>
+            </a>
+          </li> {% endcomment %}
+
+          <li class="nav-item has-treeview {% if 'etl' in segment %} menu-open {% endif %}">
+            <a href="/" class="nav-link {% if 'etl' in segment %} active {% endif %}">
+              <i class="nav-icon fa fa-database" aria-hidden="true"></i>
+              <p>
+                ETL
+                <i class="right fas fa-angle-left"></i>
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="/etl.html" class="nav-link {% if 'etl_data_movement' in segment %} active {% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                    Data Movement
+                  </p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="/etl_status.html" class="nav-link {% if 'etl_data_status' in segment %} active {% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                    Status
+                  </p>
+                </a>
+              </li>
+            </ul>
+          </li>      
+
+          <li class="nav-item has-treeview {% if 'scheduler' in segment %} menu-open {% endif %}">
+            <a href="/" class="nav-link {% if 'scheduler' in segment %} active {% endif %}">
+              <i class="nav-icon fa fa-clock"></i>
+              <p>
+                Scheduler
+                <i class="right fas fa-angle-left"></i>
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="/etl_caller.html" class="nav-link {% if 'scheduler_etl_caller' in segment %} active {% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                    ETL Caller
+                  </p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="/nifi.html" class="nav-link {% if 'scheduler_nifi' in segment %} active {% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                    NIFI
+                  </p>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <li class="nav-item has-treeview {% if 'recovery' in segment %} menu-open {% endif %}">
+            <a href="/" class="nav-link {% if 'recovery' in segment %} active {% endif %}">
+              <i class="nav-icon fa fa-heartbeat"></i>
+              <p>
+                Validity and Recovery
+                <i class="right fas fa-angle-left"></i>
+              </p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="/recovery.html" class="nav-link {% if 'execute_recovery' in segment %} active {% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                    Action
+                  </p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="/validity_and_recovery.html" class="nav-link {% if 'validity_and_recovery' in segment %} active {% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                    History
+                  </p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="/recovery_hard_delete.html" class="nav-link {% if 'recovery_hard_delete' in segment %} active {% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                    Recovery Hard Delete
+                  </p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="/recovery_promo.html" class="nav-link {% if 'recovery_promo' in segment %} active {% endif %}">
+                  <i class="far fa-circle nav-icon"></i>
+                  <p>
+                    Recovery Promo
+                  </p>
+                </a>
+              </li>
+            </ul>
+          </li>
+          
+          {% comment %} <li class="nav-item">
+            <a href="/" class="nav-link {% if 'index2' in segment %} active {% endif %}">
+              <i class="nav-icon fas fa-exclamation-triangle" aria-hidden="true"></i>
+              <p>
+                Alert (Soon)
+              </p>
+            </a>
+          </li> {% endcomment %}
+
+
+        </ul>
+      </nav>
+      <!-- /.sidebar-menu -->
+    </div>
+    <!-- /.sidebar -->
+  </aside>
+  

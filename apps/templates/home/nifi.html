@@ -1,0 +1,325 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Element injected in the BODY element -->
+{% block body_class %} sidebar-mini layout-fixed {% endblock body_class %} 
+{% load dashboard_filters %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/fontawesome-free/css/all.min.css">
+  <!-- IonIcons -->
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/css/adminlte.min.css">
+  <!-- DataTables -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+  <!-- Toastr -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/toastr/toastr.min.css">
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/css/toggle/bootstrap-toggle.min.css">
+  
+  <style>
+    .btn-action {
+      width: 100px;
+    }
+
+    .btn-detail {
+      width: 85px;
+    }
+  </style>
+
+{% endblock stylesheets %}
+
+{% block content %}    
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0 text-dark">NIFI Dashboard</h1>
+          </div><!-- /.col -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+    <div class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-4 offset-lg-4">
+            <div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title">NIFI Identity</h3>
+              </div>
+              <div class="card-body table-responsive p-0">
+                <table class="table table-valign-middle">
+                  <tr>
+                    <td>Version</td>
+                    <td>{{identity.version}}</td>
+                  </tr>
+                  <tr>
+                    <td>Timezone</td>
+                    <td>{{identity.timezone}}</td>
+                  </tr>
+                  <tr>
+                    <td>Latest Build</td>
+                    <td>{{identity.buildTimestamp}}</td>
+                  </tr>
+                </table>                
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title">Group List</h3>
+              </div>
+              <div class="card-body">
+                <table id="example1" class="table table-bordered table-hover">
+                  <thead class="text-center">
+                  <tr>
+                    <th>No</th>
+                    <th>Process Group Name</th>
+                    <th>Running</th>
+                    <th>Stopped</th>
+                    <th>Disabled</th>
+                    <th>Invalid</th>
+                    <th>Detail</th>
+                    {% comment %} <th>Nifi Page</th> {% endcomment %}
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for value in process_list %}
+                    <tr>
+                      <td class="text-center">{{forloop.counter}}</td>
+                      <td id="group-name-{{forloop.counter}}">{{value.name}}</td>
+                      <td {% if value.running > 0 %} style="background-color:#7FFF00;" {% endif %}>{{value.running}}</td>
+                      <td {% if value.stopped > 0 %} style="background-color:orange;" {% endif %}>{{value.stopped}}</td>
+                      <td {% if value.disabled > 0 %} style="background-color:orange;" {% endif %}>{{value.disabled}}</td>
+                      <td {% if value.invalid > 0 %} style="background-color:orange;" {% endif %}>{{value.invalid}}</td>
+                      <td class="text-center">
+                        <button id="btn-detail-data-{{forloop.counter}}" value="{{value.id}}" type="button" class="btn btn-info btn-detail" data-toggle="modal" data-target="#modal-xl">
+                          Detail
+                        </button>
+                        {% if user.is_readonly != 1 %}
+                        <button class="btn btn-success btn-warning btn-detail" onclick="window.open('{{endpoint}}?processGroupId={{value.id}}', '_blank')">
+                          Config
+                        </button>
+                        {% endif %}
+                      </td>
+                      {% comment %} <td>
+                        <button class="btn btn-info btn-detail">
+                          Redirect
+                        </button>
+                      </td> {% endcomment %}
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- /.card -->
+          </div>          
+        </div>
+        <!-- /.row -->
+      </div>
+      <!-- /.container-fluid -->
+
+      <div class="modal fade" id="modal-xl">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="processor-name-title">~Processor Name~</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <table id="example2" class="table table-bordered table-hover">
+                <thead class="text-center">
+                  <tr>
+                    <th>No</th>
+                    <th>Name</th>
+                    <th>Id</th>
+                    <th>Run Status</th>
+                    <th>Last Refreshed</th>
+                    <th>Task Duration</th>
+                    {% if user.is_readonly != 1 %}
+                    <th>Action</th>
+                    {% endif %}
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+    </div>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <!-- jQuery -->
+  <script src="{{ ASSETS_ROOT }}/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap -->
+  <script src="{{ ASSETS_ROOT }}/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE -->
+  <script src="{{ ASSETS_ROOT }}/js/adminlte.js"></script>
+  <script src="{{ ASSETS_ROOT }}/js/main.js"></script>
+
+  <!-- DataTables -->
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables/jquery.dataTables.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+
+  <!-- SweetAlert2 -->
+  <script src="{{ ASSETS_ROOT }}/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+  <!-- Toastr -->
+  <script src="{{ ASSETS_ROOT }}/plugins/toastr/toastr.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/js/toggle/bootstrap-toggle.min.js"></script>
+
+  <!-- page script -->
+  <script>
+    $(function () {
+      $("#example1").DataTable({
+        "responsive": true,
+        "autoWidth": false,
+      });
+      $("#example2").DataTable({
+        "responsive": true,
+        "autoWidth": false,
+      });
+      $('#example3').DataTable({
+        "paging": true,
+        "lengthChange": false,
+        "searching": false,
+        "ordering": true,
+        "info": true,
+        "autoWidth": false,
+        "responsive": true,
+      });
+    });
+  </script>
+
+  <script>
+    for(let i = 1; i< {{process_list_length}}+1; i++)
+    {
+      $("#btn-detail-data-"+i).click(function()
+      {
+        url = window.location.origin;
+        url += '/apis/nifi/processors?id=' + $(this).val()
+        
+        $.get(url, function(data, status)
+        {
+          table = $("#example2").DataTable();
+          table.clear().draw();
+
+          data['processors'].forEach((item, index) => 
+          {
+            {% comment %} let button_value = '<button class="btn btn-danger btn-action" ' + 'id=btn-activation-' + i + '-' + index + '>Stop</button>' {% endcomment %}
+            let toggle = '<input type="checkbox" id="btn-activation-' + i + '-' + index + '" data-toggle="toggle" data-on="Enabled" data-off="Disabled" data-width="100" checked>'
+            
+            let state = 'RUNNING';
+            let status = '<span id="status-' + i + '-' + index + '">' + item['status'] + '</span>';
+            if(item['status'] == 'Stopped')
+            {
+              let state = 'STOPPED';
+              toggle = toggle.replace('checked', '')
+            }
+            {% if user.is_readonly != 1 %}
+            table.row.add([index+1, item['name'], item['id'], 
+            status, item['last'], item['duration'], toggle])
+            {% else %}
+            table.row.add([index+1, item['name'], item['id'], 
+            status, item['last'], item['duration']])
+            {% endif %}
+            .draw()
+            .node();
+            
+            $('#btn-activation-' + i + '-' + index).bootstrapToggle();
+            $('#btn-activation-' + i + '-' + index).change(function()
+            {
+              let currentState = $(this).prop('checked');
+              if (currentState)
+              {
+                state = 'RUNNING'
+              }else
+              {
+                state = 'STOPPED'
+              }
+
+              url = window.location.origin;
+              url += '/apis/nifi/processors?processorId=' + item['id'] + '&version=' + item['version'] + '&clientId=' + item['clientId'] + '&state=' + state
+              $.ajax
+              ({
+                url: url,
+                method: "PUT",
+                headers:{'X-CSRFToken': '{{csrf_token}}'},
+                success: (data) => 
+                {
+                  var Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                  });
+
+                  if(data['status'] == 200)
+                  {
+                    Toast.fire({
+                      icon: 'success',
+                      title: data['message']
+                    });                    
+                  }else
+                  {
+                    Toast.fire({
+                      icon: 'error',
+                      title: data['message']
+                    });
+                    $(this).prop('checked', !currentState);
+                  }
+                }
+              });
+            }); 
+          });
+
+          $('#processor-name-title').html($('#group-name-'+i).text());
+
+        }); 
+      }); 
+    }
+  </script>
+{% endblock javascripts %}

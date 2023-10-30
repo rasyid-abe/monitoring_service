@@ -1,0 +1,200 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Element injected in the BODY element -->
+{% block body_class %} sidebar-mini layout-fixed {% endblock body_class %} 
+{% load dashboard_filters %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/fontawesome-free/css/all.min.css">
+  <!-- IonIcons -->
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/css/adminlte.min.css">
+  <!-- DataTables -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+  <!-- Toastr -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/toastr/toastr.min.css">
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
+  <style>
+    .btn-status {
+      width: 100px;
+    }
+    .btn-detail {
+      width: 100px;
+    }
+  </style>
+{% endblock stylesheets %}
+
+{% block content %}    
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0 text-dark">CDC Dashboard</h1>
+          </div><!-- /.col -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+    <div class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-4 offset-lg-4">
+            <div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title">CDC Identity</h3>
+              </div>
+              <div class="card-body table-responsive p-0">
+                <table class="table table-valign-middle">
+                  <tr>
+                    <td>Dispute Threshold</td>
+                    <td>100</td>
+                  </tr>
+                  <tr>
+                    <td>Dispute Tables</td>
+                    <td>{{dispute_table_count}}</td>
+                  </tr>
+                </table>                
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title">CDC Tables</h3>
+              </div>
+              <span style="display:none" id="data_length">{{cdc_list|length}}</span>
+              <div class="card-body">
+                <table id="example1" class="table table-bordered table-hover">
+                  <thead class="text-center">
+                  <tr>
+                    <th>No</th>
+                    <th>Table Name</th>
+                    <th>Source</th>
+                    <th>Target</th>
+                    <th>Dispute</th>
+                    <th>Last Updated At</th>
+                    <th>Action</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for value in cdc_list %}
+                    <tr>
+                      <td class="text-center">{{forloop.counter}}</td>
+                      <td>{{value.table_name}}</td>
+                      <td>{{value.data_source|thousands_separators}}</td>
+                      <td>{{value.data_target|thousands_separators}}</td>
+                      <td {% if value.dispute >= 100 %} style="background-color:orange;" {% endif %}>{{value.dispute|thousands_separators}}</td>
+                      <td class="text-center">{{value.actdate|time_normalization}}</td>
+                      <td class="text-center">
+                        <button id="btn-detail-data-cdc-{{forloop.counter}}" value="{{value.table_name}}" type="button" class="btn btn-info btn-md btn-detail" data-toggle="modal" data-target="#modal-xl">
+                        Detail</button>
+                        {% if user.is_readonly != 1 %}
+                        <a href="{{validity_endpoint}}?table={{value.table_name}}" target="_blank" id="btn-detail-data-cdc-{{forloop.counter}}" value="{{value.table_name}}" class="btn btn-success btn-md btn-detail">
+                          Validate</a>
+                        {%endif%}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- /.card -->
+          </div>          
+        </div>
+        <!-- /.row -->
+      </div>
+      <!-- /.container-fluid -->
+      
+      <div class="modal fade" id="modal-xl">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="cdc-table-name-title">~CDC TABLE NAME~</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <table id="example3" class="table table-bordered table-hover">
+                <thead class="text-center">
+                  <tr>
+                    <th>No</th>
+                    <th>Source</th>
+                    <th>Target</th>
+                    <th>Dispute</th>
+                    <th>Execution Time (min)</th>
+                    <th>Updated At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+
+
+    </div>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <!-- jQuery -->
+  <script src="{{ ASSETS_ROOT }}/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap -->
+  <script src="{{ ASSETS_ROOT }}/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE -->
+  <script src="{{ ASSETS_ROOT }}/js/adminlte.js"></script>
+  <script src="{{ ASSETS_ROOT }}/js/main.js"></script>
+
+  <!-- DataTables -->
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables/jquery.dataTables.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+
+  <!-- SweetAlert2 -->
+  <script src="{{ ASSETS_ROOT }}/plugins/sweetalert2/sweetalert2.min.js"></script>
+
+  <!-- Toastr -->
+  <script src="{{ ASSETS_ROOT }}/plugins/toastr/toastr.min.js"></script>
+
+  <script src="{{ ASSETS_ROOT }}/js/cdc.js"></script>
+
+{% endblock javascripts %}

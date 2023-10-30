@@ -1,0 +1,347 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Element injected in the BODY element -->
+{% block body_class %} sidebar-mini layout-fixed {% endblock body_class %} 
+{% load dashboard_filters %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
+  <!-- DataTables -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datepicker/daterangepicker.css">
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+  <!-- Toastr -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/toastr/toastr.min.css">
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
+  <!-- IonIcons -->
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/css/adminlte.min.css">
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/css/validationandrecovery.css">
+{% endblock stylesheets %}
+
+{% block content %}    
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0 text-dark">Validity and Recovery Dashboard</h1>
+          </div><!-- /.col -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+    <div class="content">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-lg-4 offset-lg-4">
+            <div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title text-center">Validity and Recovery Identity</h3>
+              </div>
+              <div class="card-body table-responsive p-0">
+                <table class="table table-valign-middle">
+                  <tr>
+                    <td>Waiting</td>
+                    <td>{{waiting|thousands_separators}} rows</td>
+                  </tr>
+                  <tr>
+                    <td>Recovered</td>
+                    <td>{{recovered|thousands_separators}} rows</td>
+                  </tr>
+                  <tr>
+                    <td>Scheduler</td>
+                    <td><button class="btn btn-success" type="button" data-toggle="modal" data-target="#modal-scheduler">Open</button></td>
+                  </tr>
+                </table>                
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title"><b>Validity</b> Execution Report</h3>
+                <span id="validity_length" style="display:none">{{validity_list|length}}</span>
+              </div>
+              <div class="card-body">
+                <table id="example1" class="table table-bordered table-hover">
+                  <thead class="text-center">
+                  <tr>
+                    <th>No</th>
+                    <th>Name</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Last Execution</th>
+                    <th>Detail</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for key, value in validity_list.items %}
+                    <tr>
+                      <td class="text-center">{{forloop.counter}}</td>
+                      <td>{{key}}</td>
+                      <td>{{value.ts_current|time_normalization_date}}</td>
+                      <td {% if value.is_waiting > 0 %} style="background-color:orange;" {% else %} style="background-color:#7FFF00;" {% endif %}>{{value.is_waiting|validation_status}}</td>
+                      <td>{{value.actdate|time_normalization}}</td>
+                      <td class="text-center">
+                        <button id="btn-detail-data-validity-{{forloop.counter}}" value="{{key}}" type="button" class="btn btn-info btn-md btn-detail" data-toggle="modal" data-target="#modal-validity">
+                        Detail
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- /.card -->
+          </div>
+        </div>
+        <!-- /.row -->
+
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title"><b>Recovery</b> Execution Report</h3>
+                <span id="recovery_length" style="display:none">{{recovery_list|length}}</span>
+              </div>
+              <div class="card-body">
+                <table id="example2" class="table table-bordered table-hover center">
+                  <thead class="text-center">
+                  <tr>
+                    <th rowspan="2" class="align-middle">No</th>
+                    <th rowspan="2" class="align-middle">Name</th>
+                    <th colspan="2" class="align-middle">Status</th> 
+                    <th rowspan="2" class="align-middle">Last Execution</th>
+                    <th rowspan="2" class="align-middle">Detail</th>
+                  </tr>
+                  <tr>
+                    <th rowspan=>Waiting</th>
+                    <th rowspan=>Recovered</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for key, value in recovery_list.items %}
+                    <tr>
+                      <td class="text-center">{{forloop.counter}}</td>
+                      <td>{{key}}</td>
+                      <td style="background-color:orange;">{{value.recovering|thousands_separators}} rows</td>
+                      <td style="background-color:#7FFF00;">{{value.is_recovered|thousands_separators}} rows</td>
+                      <td>{{value.act_date|time_normalization2}}</td>
+                      <td class="text-center">
+                        <button id="btn-detail-data-recovery-{{forloop.counter}}" value="{{key}}" type="button" class="btn btn-info btn-md btn-detail" data-toggle="modal" data-target="#modal-recovery">
+                        Detail
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- /.card -->
+          </div>
+        </div>
+        <!-- /.row -->
+      </div>
+      <!-- /.container-fluid -->
+
+      <div class="modal fade" id="modal-validity">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="validity-name-title">~VALIDITY NAME~</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="d-flex justify-content-center">
+                <div id="validity_range" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc;">
+                  <i class="fa fa-calendar"></i>&nbsp;
+                  <span></span> <i class="fa fa-caret-down"></i>
+                </div>
+              </div>
+              <div id="validity_loading"></div>
+              <table id="example3" class="table table-bordered table-hover">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>User</th>
+                    <th>Cabang</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+      <div class="modal fade" id="modal-recovery">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title" id="recovery-name-title">~RECOVERY NAME~</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="d-flex justify-content-center">
+                <div id="recovery_range" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc;">
+                  <i class="fa fa-calendar"></i>&nbsp;
+                  <span></span> <i class="fa fa-caret-down"></i>
+                </div>
+              </div>
+              <div id="recovery_loading"></div>
+              <table id="example4" class="table table-bordered table-hover">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>User</th>
+                    <th>Cabang</th>
+                    <th>Total Recovery</th>
+                    <th>Total Rows</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+      <div class="modal fade" id="modal-scheduler">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h4 class="modal-title">Scheduler</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div id="scheduler_loading"></div>
+                {% if user.is_readonly != 1 %}
+                <button type="button" class="btn btn-info add-new">
+                  <i class="fa fa-plus"></i> Add New
+                </button>
+                {% endif %}
+                <table id="scheduler-table" class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th class="text-center">ETL Name</th>
+                      <th class="text-center">Recovery Name</th>
+                      <th class="text-center">Start Recovery At</th>
+                      <th class="text-center">End Recovery At</th>
+                      <th class="text-center">Is Active</th>
+                      {% if user.is_readonly != 1 %}
+                      <th class="text-center">Actions</th>
+                      {% endif %}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for value in schedulers %}
+                    <tr>
+                      <td>{{value.etl_name}}</td>
+                      <td>{{value.recovery_name}}</td>
+                      <td class="text-center">{{value.start_at|date:"H:i"}}</td>
+                      <td class="text-center">{{value.end_at|date:"H:i"}}</td>
+                      <td class="text-center">{% if value.cron_state == -1 %}No{% else %}Yes{% endif %}</td>
+                      {% if user.is_readonly != 1 %}
+                      <td>
+                        <a class="add" title="Add" data-toggle="tooltip">Add</a>
+                        <a class="edit" title="Edit" data-toggle="tooltip">Edit</a>
+                        <a class="delete" title="Delete" data-toggle="tooltip">Delete</a>
+                      </td>
+                      {% endif %}
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+                {% if user.is_readonly != 1 %}
+                <div class="d-flex flex-row-reverse">
+                  <button class="btn btn-success btn-detail" id="btn-scheduler-save">Save</button>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+          <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+      </div>
+
+    </div>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <!-- jQuery -->
+  <script src="{{ ASSETS_ROOT }}/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap -->
+  <script src="{{ ASSETS_ROOT }}/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE -->
+  <script src="{{ ASSETS_ROOT }}/js/adminlte.js"></script>
+  {% comment %} <script src="{{ ASSETS_ROOT }}/js/main.js"></script> {% endcomment %}
+  <!-- OPTIONAL SCRIPTS -->
+  <script src="{{ ASSETS_ROOT }}/plugins/chart.js/Chart.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/js/pages/dashboard3.js"></script>
+  <!-- DataTables -->
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables/jquery.dataTables.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+
+  <script src="{{ ASSETS_ROOT }}/plugins/datepicker/moment.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datepicker/daterangepicker.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/sweetalert2/sweetalert2.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/toastr/toastr.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/js/validationrecovery.js"></script>
+
+
+{% endblock javascripts %}

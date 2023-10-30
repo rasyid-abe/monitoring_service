@@ -1,0 +1,177 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Element injected in the BODY element -->
+{% block body_class %} sidebar-mini layout-fixed {% endblock body_class %} 
+{% load dashboard_filters %}
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
+  <!-- DataTables -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css">
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datepicker/daterangepicker.css">
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/datatables-responsive/css/responsive.bootstrap4.min.css">
+  <!-- Toastr -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/toastr/toastr.min.css">
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css">
+  <!-- IonIcons -->
+  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/css/adminlte.min.css">
+  <link rel="stylesheet" href="{{ ASSETS_ROOT }}/css/validationandrecovery.css">
+{% endblock stylesheets %}
+
+{% block content %}    
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0 text-dark">Recovery Promo Dashboard</h1>
+          </div><!-- /.col -->
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+          </div><!-- /.col -->
+        </div><!-- /.row -->
+      </div><!-- /.container-fluid -->
+    </div>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+    <div class="content">
+      <div class="container-fluid">
+      
+        <h3 class="mb-2 mt-4" style="text-align:center">Summary</h3>
+        <div class="row">
+          <div class="offset-lg-3 col-lg-2 col-6">
+            <!-- small card -->
+            <div class="small-box bg-secondary">
+              <div class="inner text-center">
+                <h3 id="sum-normal">{{recovery_counts.compliment_count}}/{{recovery_counts.total_count}}</h3>
+                <p>Compliment</p>
+              </div>
+            </div>
+          </div>
+          <!-- ./col -->
+          <div class="col-lg-2 col-6">
+            <!-- small card -->
+            <div class="small-box bg-secondary">
+              <div class="inner text-center">
+                <h3 id="sum-normal">{{recovery_counts.product_count}}/{{recovery_counts.total_count}}</h3>
+                <p>Product</p>
+              </div>
+            </div>
+          </div>
+          <!-- ./col -->
+          <div class="col-lg-2 col-6">
+            <!-- small card -->
+            <div class="small-box bg-secondary">
+              <div class="inner text-center">
+                <h3 id="sum-normal">{{recovery_counts.promo_count}}/{{recovery_counts.total_count}}</h3>
+                <p>Promo</p>
+              </div>
+            </div>
+          </div>
+          <!-- ./col -->
+        </div>
+        <!-- /.row -->
+
+
+
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header border-0">
+                <h3 class="card-title"><b>Recovery</b> Execution Report</h3><br>
+                <p>*last hundred records</p>
+              </div>
+              <span id="recovery_length" style="display:none">{{histories|length}}</span>
+              <div class="card-body">
+                <table id="example1" class="table table-bordered table-hover">
+                  <thead class="text-center">
+                  <tr>
+                    <th rowspan="2">No</th>
+                    <th rowspan="2">User Id</th>
+                    <th rowspan="2">Cabang Id</th>
+                    <th rowspan="2">Transaction Date</th>
+                    <th rowspan="2">Created On Datalake At</th>
+                    <th colspan="3">Status</th>
+                  </tr>
+                  <tr>
+                    <th>Compliment</th>
+                    <th>Product</th>
+                    <th>Promo</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {% for value in histories %}
+                    <tr>
+                      <td class="text-center">{{forloop.counter}}</td>
+                      <td>{{value.m_user_id_user}}</td>
+                      <td>{{value.m_cabang_id_cabang}}</td>
+                      <td>{{value.transaction_tgl|time_normalization_date}}</td>
+                      <td>{{value.createdate_datalake|time_normalization_date}}</td>
+                      <td class="text-center"><button class="btn {% if value.is_recovered_compliment %}btn-success{% else %}btn-danger{% endif %}">{{value.is_recovered_compliment}}</button></td>
+                      <td class="text-center"><button class="btn {% if value.is_recovered_product %}btn-success{% else %}btn-danger{% endif %}">{{value.is_recovered_product}}</button></td>
+                      <td class="text-center"><button class="btn {% if value.is_recovered_promo %}btn-success{% else %}btn-danger{% endif %}">{{value.is_recovered_promo}}</button></td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- /.card -->
+          </div>
+        </div>
+      </div>
+      <!-- /.container-fluid -->
+
+
+
+    </div>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+  <!-- jQuery -->
+  <script src="{{ ASSETS_ROOT }}/plugins/jquery/jquery.min.js"></script>
+  <!-- Bootstrap -->
+  <script src="{{ ASSETS_ROOT }}/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE -->
+  <script src="{{ ASSETS_ROOT }}/js/adminlte.js"></script>
+  {% comment %} <script src="{{ ASSETS_ROOT }}/js/main.js"></script> {% endcomment %}
+  <!-- OPTIONAL SCRIPTS -->
+  <script src="{{ ASSETS_ROOT }}/plugins/chart.js/Chart.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/js/pages/dashboard3.js"></script>
+  <!-- DataTables -->
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables/jquery.dataTables.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
+
+  <script src="{{ ASSETS_ROOT }}/plugins/datepicker/moment.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/datepicker/daterangepicker.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/sweetalert2/sweetalert2.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/plugins/toastr/toastr.min.js"></script>
+  <script src="{{ ASSETS_ROOT }}/js/recoverypromo.js"></script>
+
+
+{% endblock javascripts %}
